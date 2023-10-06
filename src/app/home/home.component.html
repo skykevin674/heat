@@ -1,0 +1,100 @@
+<mat-drawer-container class="container" autosize>
+    <mat-drawer #drawer class="side-bar" mode="side">
+        <h2>筛选</h2>
+        <mat-form-field>
+            <mat-label>输入时间段</mat-label>
+            <mat-date-range-input [formGroup]="range" [rangePicker]="picker">
+                <input matStartDate formControlName="start" placeholder="开始时间">
+                <input matEndDate formControlName="end" placeholder="结束时间">
+            </mat-date-range-input>
+            <mat-hint>MM/DD/YYYY – MM/DD/YYYY</mat-hint>
+            <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-date-range-picker #picker></mat-date-range-picker>
+            
+            <mat-error *ngIf="range.controls.start.hasError('matStartDateInvalid')">开始时间错误</mat-error>
+            <mat-error *ngIf="range.controls.end.hasError('matEndDateInvalid')">结束时间错误</mat-error>
+        </mat-form-field>
+        <div>
+            <mat-form-field>
+                <mat-label>加载数量</mat-label>
+                <input matInput type="number" min="1" [(ngModel)]="loadNumber">
+            </mat-form-field>
+            <button mat-flat-button color="primary" (click)="load()">筛选</button>
+        </div>
+        
+        
+      <h2>地图样式</h2>
+      <div class="type">
+        <input type="radio" id="street" name="type" [(ngModel)]="mapType" value="mapbox://styles/mapbox/streets-v12"/>
+        <label for="street" matRipple>
+            <div name="street"></div>
+        </label>
+        
+        <input type="radio" id="light" name="type" [(ngModel)]="mapType" value="mapbox://styles/mapbox/light-v11"/>
+        <label for="light" matRipple>
+            <div name="light"></div>
+        </label>
+
+        <input type="radio" id="dark" name="type" [(ngModel)]="mapType" value="mapbox://styles/mapbox/dark-v11"/>
+        <label for="dark" matRipple>
+            <div name="dark"></div>
+        </label>
+
+        <input type="radio" id="satellite" name="type" [(ngModel)]="mapType" value="mapbox://styles/mapbox/satellite-v9"/>
+        <label for="satellite" matRipple>
+            <div name="satellite"></div>
+        </label>
+
+        <input type="radio" id="mixed" name="type" [(ngModel)]="mapType" value="mapbox://styles/mapbox/satellite-streets-v12"/>
+        <label for="mixed" matRipple>
+            <div name="mixed"></div>
+        </label>
+
+        <input type="radio" id="night" name="type" [(ngModel)]="mapType" value="mapbox://styles/mapbox/navigation-night-v1"/>
+        <label for="night" matRipple>
+            <div name="night"></div>
+        </label>
+      </div>
+      
+      <h2 style="margin-top: 12px;">线条颜色</h2>
+      <input [(colorPicker)]="paint['line-color']" [cpPosition]="'bottom'" [cpAlphaChannel]="'disabled'" [style.background]="paint['line-color']" (colorPickerClose)="update()"/>
+    </mat-drawer>
+    <div class="main">
+        <button mat-icon-button color="accent" class="toggle" (click)="drawer.toggle()">
+            <mat-icon> {{drawer.opened ? 'menu_open': 'menu' }}</mat-icon>
+          </button>
+        <mgl-map
+            [style]="mapType"
+            [zoom]="[9]"
+            [center]="[117.1627922224721, 36.65351291252356]"
+            (mapCreate)="onMapCreate($event)">
+            <mgl-layer *ngIf="!!source"
+                [id]="layerId"
+                type="line"
+                [source]="source"
+                [layout]="{
+                    'line-join': 'round',
+                    'line-cap': 'round'
+                }"
+                [paint]="paint">
+            </mgl-layer>
+            <mgl-geojson-source id="start"
+                [data]="aggSource"
+                [cluster]="true"
+                [clusterMaxZoom]="14"
+                [clusterRadius]="50">
+              </mgl-geojson-source>
+            <mgl-layer
+                [id]="'clusters'"
+                type="circle"
+                [source]="'start'"
+                [filter]="['has', 'point_count']"
+                [paint]="{
+                    'circle-radius': 0
+                }">
+            </mgl-layer>
+        </mgl-map>
+        <!-- <div #map class="map"></div> -->
+    </div>
+    
+</mat-drawer-container>
